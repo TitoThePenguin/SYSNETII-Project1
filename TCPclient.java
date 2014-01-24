@@ -4,18 +4,29 @@
  * Project 1
  *
  * This file describes the functions to be implemented by the TCPclient class
- * You may also implement any auxillary functions you deem necessary.
+ * You may also implement any auxiliary functions you deem necessary.
  */
+import java.io.*;
+import java.net.*;
+
+
 
 public class TCPclient
 {
 	private Socket _socket; // the socket for communication with a server
+	private static String sendString; //the string sent to the server
+	private static String receivedString; //the string received from the server
+	private BufferedReader stringIn;
+	private BufferedWriter stringOut;
+	private PrintWriter out;
 	
 	/**
 	 * Constructs a TCPclient object.
 	 */
 	public TCPclient()
 	{
+		sendString = new String("<reply> hello world </reply>");
+		receivedString = new String();
 	}
 	
 	/**
@@ -28,7 +39,14 @@ public class TCPclient
 	 */
 	public int createSocket(String host, int port)
 	{
-		
+		int error = 0;
+		try {
+			_socket = new Socket(host, port);
+		} catch (IOException e) {
+			error = -1;
+			e.printStackTrace();
+		}
+		return error;
 	}
 
 	/**
@@ -41,7 +59,15 @@ public class TCPclient
 	 */
 	public int sendRequest(String request)
 	{
-		
+		int error = 0;
+		try {
+			out = new PrintWriter(_socket.getOutputStream(), true);
+			out.println(request);
+		} catch (IOException e) {
+			System.err.println("Error could not send request to server\n");
+			e.printStackTrace();
+		}
+		return error;
 	}
 	
 	/**
@@ -52,7 +78,15 @@ public class TCPclient
 	 */
 	public String receiveResponse()
 	{
-		
+		String response = new String(); 
+		try {
+			stringIn = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
+		} catch (IOException e) {
+			System.err.println("Error: could not receive input from server\n");
+			e.printStackTrace();
+		}
+		response = stringIn.toString();
+		return response;
 	}
 	
 	/*
@@ -63,7 +97,7 @@ public class TCPclient
     */
 	public static void printResponse(String response)
 	{
-	
+		System.out.println(response + "\n");
 	}
  
 
@@ -74,16 +108,35 @@ public class TCPclient
 	 */
 	public int closeSocket() 
 	{
-		
+		int error = 0;
+		try {
+			_socket.close();
+		} catch (IOException e) {
+			error = -1;
+			e.printStackTrace();
+		}
+		return error;
 	}
 
 	/**
 	 * The main function. Use this function for 
 	 * testing your code. We will use our own main function for testing.
 	 */
-	public void main(String[] args)
+	public static void main(String[] args)
 	{
-		
+		if(args.length != 2)
+		{
+			System.err.println("Error: Incorrect number of arguments must be <hostname> <portnumber>");
+			System.exit(1);
+		}
+		String host = args[0];
+		int port = Integer.parseInt(args[2]); 
+		TCPclient client = new TCPclient();
+		client.createSocket(host, port);
+		client.sendRequest(sendString);
+		receivedString = client.receiveResponse();
+		client.closeSocket();
+	
 	}
 
 }
